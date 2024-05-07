@@ -1,0 +1,369 @@
+create function getDoctorDetail
+(@Email varchar(50),@Password varchar(25))
+returns table
+as
+return
+(select Day, d.DoctorID, EmpName as 'DoctorName', dp.DeptName, e.Gender, e.DOB, e.Contact, 
+e.Address, e.Salary, Specialization, d.OPDCharges, e.Email, e.Password
+from Doctor d, DoctorShift ds, Employee e, Department dp, DepartmentHead dh
+where Email=@Email AND 
+Password=@Password AND
+d.DoctorID=e.EmpID AND
+ds.DoctorID = d.DoctorID AND
+dp.DeptID=e.DeptID
+group by ds.Day, d.DoctorID, e.EmpName, dp.DeptName, d.Specialization, e.Gender, e.DOB,
+e.Contact, e.Address, e.Salary, d.OPDCharges, e.Email, e.Password)
+
+create function getDoctorAppointments
+(@DoctorID int)
+returns table
+as
+return
+(select a.AppointmentID, a.PatientID, p.PatientName, substring(convert(VARCHAR(10), a.Date, 120),1,10) as 'Date', substring(convert(VARCHAR(9), a.Time, 108), 1, 9)
+as 'Time', a.Status 
+from Appointment a, Doctor d, Patient p
+where a.DoctorID=@DoctorID
+AND a.DoctorID=d.DoctorID
+AND p.PatientID=a.PatientID
+AND A.Date >= GETDATE()   
+AND a.Status = 'Pending')
+
+
+select * from getDoctorAppointments(1)
+
+create function getPatientWithMedicalHistory
+(@PatientID INT)
+RETURNS TABLE
+AS
+RETURN (
+    SELECT p.PatientID,
+           p.PatientName,
+           SUBSTRING(CONVERT(VARCHAR(10), p.DOB, 120), 1, 10) AS 'DOB',
+           p.Gender,
+           p.Contact,
+           p.Address,
+           p.Email,
+           p.Status,
+           d.DiagnosisName,
+           mh.TreatmentHistory,
+           mh.Allergies,
+           mh.PreviousSurgeries,
+           mh.FamilyHistory
+    FROM Patient p
+    LEFT JOIN MedicalHistory mh ON p.PatientID = mh.PatientID
+    LEFT JOIN PrescriptionDiagnosis pd ON p.PatientID = pd.PrescriptionID
+    LEFT JOIN Prescription ps ON pd.PrescriptionID = ps.PrescriptionID
+    LEFT JOIN Diagnosis d ON pd.DiagnosisID = d.DiagnosisID
+    LEFT JOIN Appointment a ON ps.AppointmentID = a.AppointmentID
+    WHERE p.PatientID = @PatientID
+);
+select * from getPatientWithMedicalHistory(1)
+
+select * from getPatientWithMedicalHistory(1)
+
+create FUNCTION getMyPatientDiagnoses
+(@DoctorID int)
+RETURNS TABLE
+AS
+RETURN
+(
+    SELECT pa.PatientID, pa.PatientName, dg.DiagnosisID, dg.DiagnosisName, substring(convert(VARCHAR(10), p.Date, 120),1,10) as 'Date', pd.Description 
+    FROM PrescriptionDiagnosis pd
+    INNER JOIN Prescription p ON pd.PrescriptionID = p.PrescriptionID
+    INNER JOIN Diagnosis dg ON pd.DiagnosisID = dg.DiagnosisID
+    INNER JOIN Appointment a ON p.AppointmentID = a.AppointmentID
+    INNER JOIN Patient pa ON a.PatientID = pa.PatientID
+    WHERE a.DoctorID = @DoctorID
+);
+
+
+select * from getMyPatientDiagnoses(1)
+
+create FUNCTION getPastAppointments (@DoctorID INT)
+RETURNS TABLE
+AS
+RETURN
+(
+    select A.AppointmentID, A.PatientID, P.PatientName, A.Date, A.Time, A.Status
+    from Appointment A INNER JOIN Doctor D 
+	on 
+	A.DoctorID = D.DoctorID
+	INNER JOIN Patient p on a.PatientID=p.Patientid
+    where A.DoctorID = @DoctorID
+    AND A.Date < CAST(GETDATE() AS DATE)
+);
+
+select * from getPastAppointments(1)
+
+
+CREATE FUNCTION dbo.GetTotalBilledAmountForMonth
+(
+    @Year INT,
+    @Month INT
+)
+returns DECIMAL(10, 2)
+as
+begin
+    declare @TotalAmount DECIMAL(10, 2);
+    select @TotalAmount = SUM(TotalAmount)
+    from DoctorFeeBilling
+    where YEAR(Date) = @Year AND MONTH(Date) = @Month;
+    return ISNULL(@TotalAmount, 0);
+END;
+select dbo.GetTotalBilledAmountForMonth(2024,5) as 'Total Amount'
+
+create function Prescription_Details(@appointmentID int)
+returns table 
+as 
+return
+(select p.PatientID, p.PatientName, tl.Testname, d.DiagnosisName, pd.description, m.MedicineName, pm.Frequency,
+pm.Quantity, pm.Dosage, pm.Instructions, pm.MedicineDuration,pr.ClinicalNotes,pr.Date
+from
+Appointment a
+inner join Patient p
+on p.PatientID=a.AppointmentID
+inner join Prescription pr 
+on a.AppointmentID=pr.AppointmentID
+inner join PrescriptionDiagnosis pd
+on pd.PrescriptionID=pr.PrescriptionID
+inner join Diagnosis d
+on pd.DiagnosisID=d.DiagnosisID
+inner join PrescriptionMedicine pm
+on pm.PrescriptionID=pr.PrescriptionID
+inner join Medicine m
+on m.MedicineID=pm.MedicineID
+inner join PatientTest pt
+on pt.PrescriptionID=pr.PrescriptionID
+inner join TotalLabTest tl
+on tl.TestID=pt.TestID
+where a.AppointmentID= @appointmentID
+);
+select * from Prescription_Details(1)
+
+alter function Patients_Treatedby_Doctor(@doctorID int)
+returns table
+as
+return(
+select distinct a.DoctorID,p.PatientID,p.PatientName, a.Date
+from Appointment a
+inner join Patient p
+on p.PatientID=a.PatientID
+where a.DoctorID=@doctorID)
+and YEAR(a.Date) = YEAR(GETDATE())
+and MONTH(a.Date) = MONTH(GETDATE())
+);
+
+select * from Patients_Treatedby_Doctor(1)
+
+create procedure Update_Appointment_Status
+@appointmentID int
+as
+begin
+UPDATE Appointment
+set Status = 'Did not show'
+where AppointmentID=@appointmentID
+end
+exec Update_Appointment_Status 1
+
+select * from Appointment
+UPDATE Appointment
+set Status = 'Completed'
+where AppointmentID=1
+
+create function List_Of_New_Patients(@doctorId int)
+returns table
+as 
+return (select distinct p.PatientID, p.PatientName
+from Patient p
+inner join Appointment a
+on p.PatientID=a.PatientID
+inner join Prescription pr
+on pr.AppointmentID=a.AppointmentID
+where a.DoctorID=@doctorId
+--and YEAR(a.Date) = YEAR(GETDATE())
+--and MONTH(a.Date) = MONTH(GETDATE())
+and p.PatientID IN ( select a1.PatientID from Appointment a1
+						where a1.DoctorID=@doctorId
+						group by a1.PatientID
+						having count(*) = 1)
+);
+
+create function Unavailable_Slots(@shiftID int)
+returns table
+as
+return (
+         select RoomNo, Day, StartTime, EndTime
+		 from DoctorShift 
+		 where Day = (select Day from DoctorShift where ShiftID=@shiftID)
+		 and ShiftID <> @shiftID
+		 and (
+		        (StartTime >= (select StartTime from DoctorShift
+		                    where ShiftID=@shiftID) and StartTime < (select EndTime from DoctorShift where ShiftID= @shiftID))
+			 or (EndTime > (select StartTime from DoctorShift
+			                where ShiftID=@shiftID) and EndTime <= (select EndTime from DoctorShift where ShiftID= @shiftID))
+			 or (StartTime <= (select StartTime from DoctorShift 
+			                   where ShiftID=@shiftID) and EndTime >= (select EndTime from DoctorShift where ShiftID= @shiftID))
+			)
+		 );
+select * from Unavailable_Slots(2)
+
+
+create procedure createPrescription
+@AppointmentID int,
+@ClinicalNotes varchar(MAX),
+@DiagnosisID int,
+@Description varchar(MAX)
+as
+begin
+declare @PrescriptionID int;
+insert into Prescription(AppointmentID, ClinicalNotes, Status, Date) values (@AppointmentID, @ClinicalNotes, 'Active', getDate())
+
+select TOP 1 @PrescriptionID=PrescriptionID from Prescription
+order by PrescriptionID desc
+
+insert into PrescriptionDiagnosis(PrescriptionID,DiagnosisID, Date, Description) values (@PrescriptionID, @DiagnosisID, getDate(), @Description)
+
+end
+
+exec createPrescription 2,'Last stage',4,'Cannot survive, should spend most of with the family'
+
+
+create procedure AddMedicinesToPrescription
+@MedicineID int,
+@Frequency varchar(50),
+@Quantity int,
+@Dosage varchar(20),
+@Instructions varchar(MAX),
+@MedicineDuration int
+as
+begin
+declare @PrescriptionID int;
+
+select TOP 1 @PrescriptionID=PrescriptionID from Prescription
+order by PrescriptionID desc
+
+insert into PrescriptionMedicine(PrescriptionID, MedicineID, Frequency, Quantity, Instructions, MedicineDuration)
+values (@PrescriptionID, @MedicineID, @Frequency, @Quantity, @Instructions, @MedicineDuration)
+
+end
+
+create procedure addPrescriptionTest
+@TestID int
+as
+begin
+declare @PrescriptionID int;
+
+select TOP 1 @PrescriptionID=PrescriptionID from Prescription
+order by PrescriptionID desc
+
+insert into PatientTest(PrescriptionID,TestID) values (@PrescriptionID,@TestID)
+end
+
+EXEC AddMedicinesToPrescription
+    @MedicineID = 2,
+    @Frequency = 'Once daily',
+    @Quantity = 60,
+    @Dosage = '2 tablets',
+    @Instructions = 'Take with water',
+    @MedicineDuration = 15;
+
+exec addPrescriptionTest 1
+
+create TRIGGER checkDoctorShift
+ON DoctorShift
+FOR INSERT, UPDATE
+AS
+BEGIN
+    DECLARE @count INT;
+    
+    IF EXISTS(SELECT * FROM inserted)
+    BEGIN
+        SELECT @count = COUNT(*)
+        FROM inserted i
+        WHERE EXISTS (
+            SELECT 1
+            FROM DoctorShift d
+            WHERE d.StartTime = i.StartTime
+                AND d.EndTime = i.EndTime
+                AND d.RoomNo = i.RoomNo
+                AND d.Day = i.Day
+                AND d.ShiftID <> i.ShiftID -- Exclude the current row being inserted/updated
+        );
+
+        IF (@count > 0)
+        BEGIN
+            RAISERROR ('Duplicate entry found for StartTime, EndTime, Day, and RoomNo.', 16, 1);
+            ROLLBACK TRANSACTION;
+        END
+    END
+END;
+
+create procedure addDoctor
+    @EmpName NVARCHAR(100),
+    @DOB NVARCHAR(100),
+    @Gender NVARCHAR(100),
+    @Contact NVARCHAR(20),
+    @Address NVARCHAR(200),
+    @JobTitle NVARCHAR(200),
+    @DeptID NVARCHAR(200),
+    @Email NVARCHAR(100),
+    @Password NVARCHAR(100),
+    @DOJ NVARCHAR(100),
+    @Salary NVARCHAR(200),
+    @Status NVARCHAR(20),
+    @Specialization NVARCHAR(200),
+    @OPDcharges INT,
+    @StartTime TIME,
+    @EndTime TIME,
+    @Day VARCHAR(10),
+    @RoomNo VARCHAR(10),
+	@Placement varchar(10),
+	@AppointmentsLimit int
+as
+begin
+    set nocount on;
+
+    declare @empID int
+	declare @shiftID int
+	declare @doctorID int
+ 
+    begin try
+    
+        Insert into Employee (EmpName, DOB, Gender, Contact, Address, JobTitle, DeptID, Email, Password, DOJ, Salary, Status)
+        values (@EmpName, @DOB, @Gender, @Contact, @Address, @JobTitle, @DeptID, @Email, @Password, @DOJ, @Salary, @Status)
+
+       
+        set @empID = SCOPE_IDENTITY()
+
+		
+            insert into Doctor (DoctorID,Specialization,OPDCharges)
+            values (@empId,@Specialization, @OPDcharges)
+
+        select @ShiftID = ShiftID, @DoctorID = DoctorID
+        from DoctorShift
+        where StartTime = @StartTime
+            and EndTime = @EndTime
+            and Day = @Day
+            and RoomNo = @RoomNo
+
+        if (@ShiftID is not null)
+        begin
+            select ShiftID, DoctorID
+            from DoctorShift
+            where StartTime = @StartTime
+                and EndTime = @EndTime
+                and Day = @Day
+                and RoomNo = @RoomNo
+        end
+        else
+        begin
+           
+            insert into DoctorShift (DoctorID, StartTime, EndTime, Day, RoomNo, Placement, AppointmentsLimit)
+            values (@empID, @StartTime, @EndTime, @Day, @RoomNo, @Placement, @AppointmentsLimit)
+        end
+   
+  end try
+  begin catch
+    throw
+  end catch
+end;
