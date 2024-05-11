@@ -120,28 +120,69 @@
                   </div>
             </div>
 
-            <ion-icon name="bag-add-sharp" style="font-size: 2em;"></ion-icon>
-            <h2 id="ad">Diagnosis History</h2>
+            
+            <ion-icon name="business"style="font-size: 2em;"></ion-icon>
+            <h2 id="bill">LAB</h2>
 
-<table>
-  <thead>
-    <tr>
-      <th>Diagnosis</th>
-      <th>Patient Name</th>
-      <th>Description</th>
-      <th>Date</th>
-      <th>Prescription</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Cancer</td>
-      <td>xyz</td>
-      <td>xyz</td>
-      <td>2024-05-10</td>
-      <td><button class="btn btn-active btn-accent">View</button></td>
-    </tr>
-    
+           <div class="dataEntry">
+            <label for="Dose">Appointment ID: </label>
+            <input type="text" id="appID" class="appID" placeholder="Appointment ID">
+            <label for="Dose">Test ID: </label>
+            <input type="text" id="testID" class="testID" placeholder="Test ID">
+            <button id="search" class="btn btn-small btn-outline" style="margin-left: 40vh;">Search</button>
+           </div>
+                <div class="invoice">
+                    <h1>RESULTS</h1>
+                    <div class="details">
+                        <div class="left">
+                            <strong><label for="pName">Patient Name:</label></strong><span id="pName">Alex</span><br>
+                            <strong><label for="pAge">AGE:</label></strong><span id="page">18</span><br>
+                            <strong><label for="date">Date:</label></strong><span id="date">05/05/2023</span><br>
+                            <strong><label for="dName">Doctor Name:</label></strong><span id="dName">Dr. Alex</span>
+
+                        </div>
+                        <div class="right">
+                            
+                        </div>
+                    </div>
+                    <div class="tests">
+                        <!-- <div class="test">
+                            
+                            <span>Test:</span>
+                            <span><strong><input type="text" id="t" placeholder="Hemoglobin"></strong></span>
+                        </div> -->
+                        <div class="test">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Test ID</th>
+                                        <th>Test Name</th>
+                                        <th>Field Name</th>
+                                        <th>Field Result</th>
+                                        <th>Normal Range</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1</td>
+                                        <td>cbc</td>
+                                        <td>2000 blood count</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                            <!-- <span>Result:</span>
+                            <span><strong><input type="text" id="res" placeholder="2100 rbc"></strong></span> -->
+                        </div>
+
+                        
+                    </div>
+                    
+                    
+                </div>
+            </body>
+            
     <!-- =========== Scripts =========  -->
     <script src="app.js"></script>
     <script src="app1.js"></script>

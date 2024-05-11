@@ -767,6 +767,12 @@ h1#ph1 {
   margin-left: 36vh;
 }
 
+h2#pre {
+  text-align: center;
+  margin-top: 0vh;
+  margin-bottom: 3vh;
+}
+
 .prescription {
   border: 3px solid #222428;
   padding: 20px;
@@ -853,10 +859,13 @@ input#med {
   width: 34vh;
   
 }
+input#qty {
+  width: 21vh;
+}
 
 input#Dose {
   margin-left: 8px;
-  width: 29vh;
+  width: 19vh;
 }
 
 input#Hospital {
@@ -865,4 +874,43 @@ input#Hospital {
 input#patient-name {
   width: 27vh;
   margin-left: 3px;
+}
+
+
+input#freq {
+  width: 21vh;
+}
+input#duration {
+  width: 20vh;
+}
+
+label#dur {
+  margin-left: 20vh;
+}
+
+
+/* prescription edit */
+
+input#medi {
+  width: 17.2vh;
+}
+input#qty2 {
+  width: 17vh;
+}
+
+input#Dose2 {
+  margin-left: 8px;
+  width: 17.5vh;
+}
+
+input#freq {
+  width: 19vh;
+}
+
+label#dur2 {
+  margin-left: 23vh;
+}
+
+input#duration2 {
+  width: 18vh;
 }

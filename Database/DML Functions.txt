@@ -38,6 +38,7 @@ AS
 RETURN (
     SELECT p.PatientID,
            p.PatientName,
+		   datediff(year,p.DOB,getDate()) as 'Age',
            SUBSTRING(CONVERT(VARCHAR(10), p.DOB, 120), 1, 10) AS 'DOB',
            p.Gender,
            p.Contact,
@@ -57,6 +58,7 @@ RETURN (
     LEFT JOIN Appointment a ON ps.AppointmentID = a.AppointmentID
     WHERE p.PatientID = @PatientID
 );
+
 select * from getPatientWithMedicalHistory(1)
 
 select * from getPatientWithMedicalHistory(1)
@@ -116,7 +118,7 @@ create function Prescription_Details(@appointmentID int)
 returns table 
 as 
 return
-(select p.PatientID, p.PatientName, tl.Testname, d.DiagnosisName, pd.description, m.MedicineName, pm.Frequency,
+(select a.AppointmentID, pr.PrescriptionID, p.PatientID, p.PatientName, datediff(year,p.DOB,getDate()) as 'Age', tl.Testname, d.DiagnosisName, pd.Description, m.MedicineName, pm.Frequency,
 pm.Quantity, pm.Dosage, pm.Instructions, pm.MedicineDuration,pr.ClinicalNotes,pr.Date
 from
 Appointment a
@@ -132,9 +134,9 @@ inner join PrescriptionMedicine pm
 on pm.PrescriptionID=pr.PrescriptionID
 inner join Medicine m
 on m.MedicineID=pm.MedicineID
-inner join PatientTest pt
+LEFT join PatientTest pt
 on pt.PrescriptionID=pr.PrescriptionID
-inner join TotalLabTest tl
+LEFT join TotalLabTest tl
 on tl.TestID=pt.TestID
 where a.AppointmentID= @appointmentID
 );
@@ -155,15 +157,20 @@ and MONTH(a.Date) = MONTH(GETDATE())
 
 select * from Patients_Treatedby_Doctor(1)
 
-create procedure Update_Appointment_Status
-@appointmentID int
-as
-begin
-UPDATE Appointment
-set Status = 'Did not show'
-where AppointmentID=@appointmentID
-end
-exec Update_Appointment_Status 1
+create PROCEDURE Update_Appointment_Status
+    @appointmentID INT
+AS
+BEGIN
+    BEGIN TRY
+        UPDATE Appointment
+        SET Status = 'Did not show'
+        WHERE AppointmentID = @appointmentID;
+    END TRY
+    BEGIN CATCH
+        -- Log or handle the error appropriately
+        THROW;
+    END CATCH
+END;
 
 select * from Appointment
 UPDATE Appointment
@@ -367,3 +374,44 @@ begin
     throw
   end catch
 end;
+
+
+create function getPatientDiagnoses
+(@PatientID int)
+returns table
+as
+return
+(select PatientName, DiagnosisName, a.AppointmentID from Patient p, Diagnosis d, Prescription ps, PrescriptionDiagnosis pd, Appointment a
+where a.PatientID=p.PatientID
+AND ps.AppointmentID=a.AppointmentID
+AND pd.PrescriptionID=ps.PrescriptionID
+and d.DiagnosisID=pd.DiagnosisID
+AND p.PatientID=@PatientID)
+
+select * from getPatientDiagnoses(3)
+
+CREATE FUNCTION GetPatientLabProfile
+(
+	@AppointmentID int,    @TestID int
+)
+RETURNS TABLE
+AS
+RETURN
+(
+    SELECT a.PatientID, pat.PatientName, e.EmpName as 'DoctorName',datediff(year,pat.DOB,getDate()) as 'Age',
+	tso.OrderID, tlt.TestID, tlt.TestName, tlt.Cost, lr.SampleID, lr.FieldId, lr.FieldResult,
+	lr.TimeStamp AS 'Test Result Schedule', tso.collection_time
+    FROM Appointment a
+    JOIN Prescription p ON a.AppointmentID = p.AppointmentID
+    JOIN TestOrders tso ON p.PrescriptionID = tso.PrescriptionID
+    JOIN PatientTest pt ON p.PrescriptionID = pt.PrescriptionID
+    JOIN Patient pat on a.PatientID=pat.PatientID
+	JOIN Employee e on e.EmpID=a.DoctorID
+	JOIN TotalLabTest tlt ON pt.TestID = tlt.TestID
+    JOIN LabResults lr ON tso.OrderID = lr.SampleID
+    JOIN Samples s ON tso.OrderID = s.OrderID
+    WHERE a.AppointmentID=@AppointmentID
+	AND tlt.TestID=@TestID AND pt.TestID=@TestID)
+
+select * from GetPatientLabProfile(4,1)
+

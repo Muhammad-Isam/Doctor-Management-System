@@ -164,6 +164,60 @@ function getDoctorAppointments(doctorID, callback) {
     });
 }
 
+// Define the /appointments route to fetch doctor appointments
+app.get('/appointments/past', function (req, res) {
+    // Get the DoctorID from the query parameters
+    var doctorID = req.query.doctorID;
+
+    // Call the getDoctorAppointments function to fetch appointments from the database
+    getPastAppointments(doctorID, function(err, appointments) {
+        if (err) {
+            console.error('Error fetching appointments:', err);
+            return res.status(500).send('Internal Server Error');
+        }
+
+        // Check if appointments were found
+        if (!appointments || appointments.length === 0) {
+            console.log('Appointments not found');
+            return res.status(404).send('Appointments not found');
+        }
+
+        // Send the appointments as JSON response
+        res.json(appointments);
+    });
+});
+
+// Define the getDoctorAppointments function
+function getPastAppointments(doctorID, callback) {
+    // connect to your database
+    sql.connect(config, function (err) {
+        if (err) {
+            console.log('Error connecting to database:', err);
+            return callback(err, null);
+        }
+
+        console.log('Connected to database successfully');
+
+        // create Request object
+        var request = new sql.Request();
+
+        // Set up input parameters for the function
+        request.input('DoctorID', sql.Int, doctorID);
+
+        // Execute the function
+        request.query(`SELECT * FROM dbo.getPastAppointments(${doctorID})`, function (err, recordset) {
+            if (err) {
+                console.log('Error executing query:', err);
+                return callback(err, null);
+            }
+            console.log('Fetched appointments from database:', recordset);
+
+            callback(null, recordset.recordset);
+        });
+    });
+}
+
+
 // Define the /patient route to fetch patient details
 app.get('/patient', function(req, res) {
     // Get the PatientID from the query parameters
@@ -269,32 +323,221 @@ function getMyPatientDiagnoses(doctorID, callback) {
     });
 }
 
-app.post('/update-appointment-status', function(req, res) {
-    // Get the appointmentID from the request body
-    var appointmentID = req.body.appointmentID;
+const bodyParser = require('body-parser');
 
-    // Call the Update_Appointment_Status procedure to update appointment status in the database
-    updateAppointmentStatus(appointmentID, function(err, result) {
+app.use(bodyParser.json()); // Parse JSON-encoded bodies
+app.use(bodyParser.urlencoded({ extended: true })); // Parse URL-encoded bodies
+
+app.post('/update-appointment-status/:appointmentID', function(req, res) {
+    // Get the appointmentID from the route parameters
+    var appointmentID = req.params.appointmentID;
+
+    // Get the status from the request body
+    var status = req.body.status;
+
+    // Call the updateAppointmentStatus function to update the appointment status
+    updateAppointmentStatus(appointmentID, status, function(err, result) {
         if (err) {
             console.error('Error updating appointment status:', err);
             return res.status(500).send('Internal Server Error');
         }
 
-        // Check if the appointment status was updated successfully
-        if (result && result.rowsAffected && result.rowsAffected.length > 0 && result.rowsAffected[0] > 0) {
-            console.log('Appointment status updated successfully');
-            return res.status(200).send('Appointment status updated successfully');
-        } else {
-            console.log('No appointment found with the specified ID');
-            return res.status(404).send('No appointment found with the specified ID');
-        }
+        // Send the result as JSON response
+        res.json(result);
     });
 });
 
 // Define the function to update appointment status
-function updateAppointmentStatus(appointmentID, callback) {
+function updateAppointmentStatus(appointmentID, status, callback) {
+    // connect to your database
+    sql.connect(config, function (err) {
+        if (err) {
+            console.log('Error connecting to database:', err);
+            return callback(err, null);
+        }
+
+        console.log('Connected to database successfully');
+
+        // create Request object
+        var request = new sql.Request();
+
+        // Set up input parameters for the stored procedure
+        request.input('AppointmentID', sql.Int, appointmentID);
+        request.input('Status', sql.VarChar(25), status);
+
+        // Execute the stored procedure
+        request.execute('Update_Appointment_Status', function (err, recordset) {
+            if (err) {
+                console.log('Error executing stored procedure:', err);
+                return callback(err, null);
+            }
+            console.log('Appointment status updated successfully');
+
+            callback(null, recordset);
+        });
+    });
+}
+
+app.get('/medicines', function(req, res) {
     // Connect to the database
     sql.connect(config, function(err) {
+        if (err) {
+            console.error('Error connecting to database:', err);
+            return res.status(500).send('Internal Server Error');
+        }
+
+        console.log('Connected to database successfully');
+
+        // Create a SQL request object
+        const request = new sql.Request();
+
+        // Execute the query to select all medicines
+        request.query(`SELECT * FROM Medicine`, function(err, recordset) {
+            if (err) {
+                console.error('Error executing query:', err);
+                return res.status(500).send('Internal Server Error');
+            }
+
+            console.log('Fetched medicines from database:', recordset);
+
+            // Send the medicines as JSON response
+            res.json(recordset.recordset);
+        });
+    });
+});
+
+// Server-Side function to handle the TotalLabTest query
+app.get('/total-lab-tests', function (req, res) {
+    // Connect to the database
+    sql.connect(config, function (err) {
+        if (err) {
+            console.log('Error connecting to database:', err);
+            return res.status(500).send('Internal Server Error');
+        }
+
+        console.log('Connected to database successfully');
+
+        // Create a request object
+        var request = new sql.Request();
+
+        // Execute the query to fetch all total lab tests
+        request.query(`SELECT * FROM TotalLabTest`, function (err, recordset) {
+            if (err) {
+                console.log('Error executing query:', err);
+                return res.status(500).send('Internal Server Error');
+            }
+
+            // Send the fetched lab tests as JSON response
+            res.json(recordset.recordset);
+        });
+    });
+});
+
+app.get('/diagnosis', function (req, res) {
+    // Connect to the database
+    sql.connect(config, function (err) {
+        if (err) {
+            console.log('Error connecting to database:', err);
+            return res.status(500).send('Internal Server Error');
+        }
+
+        console.log('Connected to database successfully');
+
+        // Create a request object
+        var request = new sql.Request();
+
+        // Execute the query to fetch all total lab tests
+        request.query(`SELECT * FROM Diagnosis`, function (err, recordset) {
+            if (err) {
+                console.log('Error executing query:', err);
+                return res.status(500).send('Internal Server Error');
+            }
+
+            // Send the fetched lab tests as JSON response
+            res.json(recordset.recordset);
+        });
+    });
+});
+
+
+
+app.post('/create-prescription', function(req, res) {
+    // Get data from the request body
+    var appointmentID = req.body.appointmentID;
+    var clinicalNotes = req.body.clinicalNotes;
+    var diagnosisID = req.body.diagnosisID;
+    var description = req.body.description;
+
+    // Call the createPrescription function
+    createPrescription(appointmentID, clinicalNotes, diagnosisID, description, function(err, result) {
+        if (err) {
+            console.error('Error creating prescription:', err);
+            return res.status(500).send('Internal Server Error');
+        }
+
+        // Send the result as JSON response
+        res.json(result);
+    });
+});
+
+// Define the function to create a prescription
+function createPrescription(appointmentID, clinicalNotes, diagnosisID, description, callback) {
+    // connect to your database
+    sql.connect(config, function (err) {
+        if (err) {
+            console.log('Error connecting to database:', err);
+            return callback(err, null);
+        }
+
+        console.log('Connected to database successfully');
+
+        // create Request object
+        var request = new sql.Request();
+
+        // Set up input parameters for the stored procedure
+        request.input('AppointmentID', sql.Int, appointmentID);
+        request.input('ClinicalNotes', sql.VarChar(sql.MAX), clinicalNotes);
+        request.input('DiagnosisID', sql.Int, diagnosisID);
+        request.input('Description', sql.VarChar(sql.MAX), description);
+
+        // Execute the stored procedure
+        request.execute('createPrescription', function (err, recordset) {
+            if (err) {
+                console.log('Error executing stored procedure:', err);
+                return callback(err, null);
+            }
+            console.log('Prescription created successfully');
+
+            callback(null, recordset);
+        });
+    });
+}
+
+app.post('/add-medicines-to-prescription', function(req, res) {
+    // Get data from the request body
+    var medicineID = req.body.medicineID;
+    var frequency = req.body.frequency;
+    var quantity = req.body.quantity;
+    var dosage = req.body.dosage;
+    var instructions = req.body.instructions;
+    var medicineDuration = req.body.medicineDuration;
+
+    // Call the addMedicinesToPrescription function
+    addMedicinesToPrescription(medicineID, frequency, quantity, dosage, instructions, medicineDuration, function(err, result) {
+        if (err) {
+            console.error('Error adding medicines to prescription:', err);
+            return res.status(500).send('Internal Server Error');
+        }
+
+        // Send the result as JSON response
+        res.json(result);
+    });
+});
+
+// Define the function to add medicines to prescription
+function addMedicinesToPrescription(medicineID, frequency, quantity, dosage, instructions, medicineDuration, callback) {
+    // Connect to your database
+    sql.connect(config, function (err) {
         if (err) {
             console.error('Error connecting to database:', err);
             return callback(err, null);
@@ -305,20 +548,179 @@ function updateAppointmentStatus(appointmentID, callback) {
         // Create Request object
         var request = new sql.Request();
 
-        // Set up input parameter for the procedure
-        request.input('AppointmentID', sql.Int, appointmentID);
+        // Set up input parameters for the stored procedure
+        request.input('MedicineID', sql.Int, medicineID);
+        request.input('Frequency', sql.VarChar(50), frequency);
+        request.input('Quantity', sql.Int, quantity);
+        request.input('Dosage', sql.VarChar(20), dosage);
+        request.input('Instructions', sql.VarChar(sql.MAX), instructions);
+        request.input('MedicineDuration', sql.Int, medicineDuration);
 
-        // Execute the procedure
-        request.execute('Update_Appointment_Status', function(err, result) {
+        // Execute the stored procedure
+        request.execute('AddMedicinesToPrescription', function (err, recordset) {
             if (err) {
-                console.error('Error executing procedure:', err);
+                console.error('Error executing stored procedure:', err);
                 return callback(err, null);
             }
+            console.log('Medicines added to prescription successfully');
 
-            callback(null, result);
+            callback(null, recordset);
         });
     });
 }
+
+app.post('/add-test-to-prescription', function(req, res) {
+    // Get data from the request body
+    var testID = req.body.testID;
+
+    // Call the addPrescriptionTest function
+    addPrescriptionTest(testID, function(err, result) {
+        if (err) {
+            console.error('Error adding test to prescription:', err);
+            return res.status(500).send('Internal Server Error');
+        }
+
+        // Send the result as JSON response
+        res.json(result);
+    });
+});
+
+// Define the function to add a test to prescription
+function addPrescriptionTest(testID, callback) {
+    // Connect to your database
+    sql.connect(config, function (err) {
+        if (err) {
+            console.error('Error connecting to database:', err);
+            return callback(err, null);
+        }
+
+        console.log('Connected to database successfully');
+
+        // Create Request object
+        var request = new sql.Request();
+
+        // Set up input parameters for the stored procedure
+        request.input('TestID', sql.Int, testID);
+
+        // Execute the stored procedure
+        request.execute('addPrescriptionTest', function (err, recordset) {
+            if (err) {
+                console.error('Error executing stored procedure:', err);
+                return callback(err, null);
+            }
+            console.log('Test added to prescription successfully');
+
+            callback(null, recordset);
+        });
+    });
+}
+
+app.get('/prescription/details', function(req, res) {
+    // Get the AppointmentID from the query parameters
+    var appointmentID = req.query.appointmentID;
+
+    // Call the getPrescriptionDetails function to fetch prescription details from the database
+    getPrescriptionDetails(appointmentID, function(err, prescriptionDetails) {
+        if (err) {
+            console.error('Error fetching prescription details:', err);
+            return res.status(500).send('Internal Server Error');
+        }
+
+        // Check if prescription details were found
+        if (!prescriptionDetails || prescriptionDetails.length === 0) {
+            console.log('Prescription details not found');
+            return res.status(404).send('Prescription details not found');
+        }
+
+        // Send the prescription details as JSON response
+        res.json(prescriptionDetails);
+    });
+});
+
+// Define the getPrescriptionDetails function
+function getPrescriptionDetails(appointmentID, callback) {
+    // connect to your database
+    sql.connect(config, function (err) {
+        if (err) {
+            console.log('Error connecting to database:', err);
+            return callback(err, null);
+        }
+
+        console.log('Connected to database successfully');
+
+        // create Request object
+        var request = new sql.Request();
+
+        // Set up input parameters for the function
+        request.input('AppointmentID', sql.Int, appointmentID);
+
+        // Execute the function
+        request.query(`select * from Prescription_Details(${appointmentID})`, function (err, recordset) {
+            if (err) {
+                console.log('Error executing query:', err);
+                return callback(err, null);
+            }
+            console.log('Fetched prescription details from database:', recordset);
+
+            callback(null, recordset.recordset);
+        });
+    });
+}
+
+app.get('/patient/lab/details', function(req, res) {
+    // Get the AppointmentID and TestID from the query parameters
+    var appointmentID = req.query.appointmentID;
+    var testID = req.query.testID;
+
+    // Call the getPatientLabDetails function to fetch patient lab details from the database
+    getPatientLabDetails(appointmentID, testID, function(err, patientLabDetails) {
+        if (err) {
+            console.error('Error fetching patient lab details:', err);
+            return res.status(500).send('Internal Server Error');
+        }
+
+        // Check if prescription details were found
+        if (!patientLabDetails || patientLabDetails.length === 0) {
+            console.log('Patient lab details not found');
+            return res.status(404).send('Patient lab details not found');
+        }
+
+        // Send the patient lab details as JSON response
+        res.json(patientLabDetails);
+    });
+});
+
+// Define the getPatientLabDetails function
+function getPatientLabDetails(appointmentID, testID, callback) {
+    // connect to your database
+    sql.connect(config, function (err) {
+        if (err) {
+            console.log('Error connecting to database:', err);
+            return callback(err, null);
+        }
+
+        console.log('Connected to database successfully');
+
+        // create Request object
+        var request = new sql.Request();
+
+        // Set up input parameters for the function
+        request.input('AppointmentID', sql.Int, appointmentID);
+        request.input('TestID', sql.Int, testID);
+
+        // Execute the function
+        request.query(`select * from GetPatientLabProfile(${appointmentID},${testID})`, function (err, recordset) {
+            if (err) {
+                console.log('Error executing query:', err);
+                return callback(err, null);
+            }
+            console.log('Fetched patient lab details from database:', recordset);
+
+            callback(null, recordset.recordset);
+        });
+    });
+}
+
 
 
 var server = app.listen(3000, function () {
