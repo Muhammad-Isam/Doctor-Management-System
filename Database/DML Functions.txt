@@ -75,10 +75,9 @@ RETURN
     INNER JOIN Diagnosis dg ON pd.DiagnosisID = dg.DiagnosisID
     INNER JOIN Appointment a ON p.AppointmentID = a.AppointmentID
     INNER JOIN Patient pa ON a.PatientID = pa.PatientID
-	INNER JOIN PrescriptionMedicine pm on pm.PrescriptionID=p.PrescriptionID
+	--INNER JOIN PrescriptionMedicine pm on pm.PrescriptionID=p.PrescriptionID
     WHERE a.DoctorID = @DoctorID
 );
-
 select * from getMyPatientDiagnoses(1)
 
 create FUNCTION getPastAppointments (@DoctorID INT)
@@ -86,10 +85,9 @@ RETURNS TABLE
 AS
 RETURN
 (
-    select A.AppointmentID, A.PatientID, P.PatientName, P.Email, pd.PrescriptionID, A.Date, A.Time, A.Status
-    from PrescriptionDiagnosis pd, Appointment A INNER JOIN Doctor D 
-	on 
-	A.DoctorID = D.DoctorID
+    select distinct A.AppointmentID, A.PatientID, P.PatientName, P.Email, pd.PrescriptionID, A.Date, A.Time, A.Status
+    from PrescriptionDiagnosis pd, Appointment A 
+	INNER JOIN Doctor D on A.DoctorID = D.DoctorID
 	INNER JOIN Patient p on a.PatientID=p.Patientid
 	INNER JOIN Prescription ps on a.AppointmentID=ps.AppointmentID
 	INNER JOIN PrescriptionMedicine pm on pm.PrescriptionID=ps.PrescriptionID
@@ -98,7 +96,6 @@ RETURN
     --AND A.Date < CAST(GETDATE() AS DATE)
 	AND a.Status<>'Pending'
 );
-
 select * from getPastAppointments(1)
 
 
