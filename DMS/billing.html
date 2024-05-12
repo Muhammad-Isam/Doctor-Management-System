@@ -6,10 +6,10 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard </title>
-    <!-- ======= Styles ====== -->
-    <link rel="stylesheet" href="style.css">
     <link href="https://cdn.jsdelivr.net/npm/daisyui@1.3.6/dist/full.css" rel="stylesheet">
 
+    <!-- ======= Styles ====== -->
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
@@ -92,6 +92,7 @@
             </ul>
         </div>
 
+
         <!-- ========================= Main ==================== -->
         <div class="main">
             <div class="topbar">
@@ -99,17 +100,13 @@
                     <ion-icon name="menu-outline"></ion-icon>
                 </div>
 
-                <div class="search" style="margin: 0 50vh;">
+                <div class="search">
                     <label>
                         <input type="text" placeholder="Search here">
                         <ion-icon name="search-outline"></ion-icon>
                     </label>
                 </div>
 
-                <!-- <div class="user">
-                    <ion-icon size="small"></ion-icon>
-                    <ion-icon name="person-circle-outline"></ion-icon>
-                </div> -->
                 <div class="dropdown dropdown-end">
                     <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar">
                       <div class="w-10 rounded-full">
@@ -118,81 +115,48 @@
                     </div>
                     <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
                       
-                      <li><a>Logout</a></li>
+                      <li><a id="logOut">Logout</a></li>
                     </ul>
                   </div>
             </div>
-            <ion-icon name="receipt-outline" style="font-size: 2em; margin-bottom: -7vh; margin-left: 63vh; font-size: 2em;" id="lpg"></ion-icon>
 
-            <h2 id="pre" style="font-weight: bolder;">Prescription</h2>
-            
+            <ion-icon name="calculator-sharp" style="font-size: 2em;"></ion-icon>
+            <h2 id="bill">Billing</h2>
+
            
-            <div class="prescription">
-                <div class="patient-info">
-                    <h1 id="ph1">Prescription</h1>
-
-                    <label for="app-id" id="pid">Appointment ID:</label>
-                    <input type="text" id="app-id" placeholder="AppointmentID" readonly>
-                    <div>
-                        <label for="patient-id" id="pid">Patient Name:</label>
-                        <input type="text" id="patient-id" placeholder="Patient Name" readonly>
-                        <label for="patient-name" id="pname">Doctor Name:</label>
-                        <input type="text" id="doctor-name" placeholder="Doctor Name" readonly>
+                <div class="invoice">
+                    <h1>INVOICE</h1>
+                    <div class="details">
+                        <div class="left">
+                            <label for="pName">Patient Name: </label><span id="pName">Alex</span><br>
+                            <label for="date">Date: </label><span id="date">05/05/2023</span><br>
+                            <label for="dName">Doctor Name: </label><span id="dName">Dr. Alex</span>
+                        </div>
+                        <div class="right">
+                            
+                        </div>
                     </div>
-                    <div>
+                    <div class="tests">
+                        <div class="test">
+                            
+                            <span><strong>SERVICES</strong></span>
+                            <span><strong>COST</strong></span>
+                        </div>
+                        <div class="test">
+                            
+                            <span>OPD Charges</span>
+                            <span id="opdCharges">RS1500.00</span>
+                        </div>
+
                         
-                        <label for="age">Age:</label>
-                        <input type="text" id="age" placeholder="Enter Age" readonly>
-                        <label for="clinical-notes" id="cnotes">Clinical Notes:</label>
-                        <textarea class="textarea textarea-ghost" placeholder="Notes" id="cnotes"></textarea>
                     </div>
-                    <div class="diag">
-                        <label for="diagnosis">Diagnosis:</label>
-                        <select id="diagnosis">
-                            <option value="Item 1">Item 1</option>
-                            <option value="Item 2">Item 2</option>
-                        </select>
-                        <label for="hos" id="hos">Description:</label>
-                        <textarea class="textarea textarea-ghost" placeholder="Description" id="description"></textarea>
+                    <div id="total" class="total">
+                        TOTAL COST: RS1500.00
                     </div>
+                    
                 </div>
-                <div class="medicationContainer" id="medication-info">
-                        <label for="medicine">Medicine:</label>
-                        <select id="medicine" class="medicine">
-                            <option value="Item 1">Item 1</option>
-                            <option value="Item 2">Item 2</option>
-                        </select>
-                        <label for="Dose">Dose: </label>
-                        <input type="text" id="Dose" class="Dose" placeholder="250m/l">
-                        <label for="Dose">Quantity: </label>
-                        <input type="text" id="qty" class="qty" placeholder="1/2/3">
-                        <label for="Frequency">Frequency: </label>
-                        <input type="text" id="freq" class="freq" placeholder="Twice a day">
-                        <label for="Duration" id="dur">Duration: </label>
-                        <input type="text" id="duration" class="duration" placeholder="in (days)">
-                        <br><label for="clinical-notes" >Instructions:</label>
-                        <textarea class="textarea textarea-ghost ins" id="ins" placeholder="Notes"></textarea>
-                </div>
-                <div id="medi"><button id="medPlus" class="btn btn-small btn-outline" style="margin-right: 510px;">+</button></div>
-                
-                <div class="testContainer" id="test-info">
-                       <label for="test">Test:</label>
-                         <select id="test" class="test">
-                            <option value="Item 1">Item 1</option>
-                            <option value="Item 2">Item 2</option>
-                        </select>
-                </div>
-                <div><button id="testPlus" class="btn btn-small btn-outline" style="margin-right: 510px;">+</button></div> 
-
-                <div><button id="gen" class="btn btn-small btn-outline" style="margin-left: 40vh;">Generate</button></div>
-
-
-</div>
+            </body>
             
-            
-        
-              
-              
     <!-- =========== Scripts =========  -->
     <script src="app.js"></script>
     <script src="app1.js"></script>

@@ -20,6 +20,7 @@
 body {
   min-height: 100vh;
   overflow-x: hidden;
+  height: 100%;
 }
 
 .container {
@@ -27,9 +28,16 @@ body {
   width: 100%;
 }
 
+#doctorName
+{
+  font-size: 85%;
+  position: inherit;
+  top: -0.8rem;
+}
+
 /* =============== Navigation ================ */
 .navigation {
-  margin-top: -7vh;
+  margin-top: 26vh;
   position: fixed;
   width: 300px;
   height: 100%;
@@ -132,7 +140,7 @@ body {
 
 /* ===================== Main ===================== */
 .main {
-  margin-top: -7vh;
+  margin-top: 26vh;
   position: absolute;
   width: calc(100% - 300px);
   left: 300px;
@@ -643,6 +651,7 @@ h1#pi {
 }
 
 .container {
+  /* margin-top: 26vh; */
   margin-bottom: 10px;
   display: flex;
   align-items: center;
@@ -718,7 +727,8 @@ h2#bill {
 .invoice {
   max-height: 86vh;
   max-width: 82vh;
-  margin: 0 auto;
+  margin-top: 2vh;
+  margin-left: 31vh;
   padding: 20px;
   border: 1px solid #ccc;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
@@ -732,9 +742,7 @@ h2#bill {
    justify-content: space-between;
    margin-top: 20px;
 }
-.invoice .details .left {
-   flex: 1;
-}
+
 .invoice .details .right {
    flex: 1;
    text-align: right;
@@ -756,7 +764,10 @@ h2#bill {
    text-align: center;
    margin-top: 30px;
 }
-      
+
+label#appoint {
+  margin-left: 33vh;
+}
 
 
 /* prescription */
@@ -860,7 +871,7 @@ input#med {
   
 }
 input#qty {
-  width: 21vh;
+  width: 11.5vh;
 }
 
 input#Dose {
@@ -914,3 +925,44 @@ label#dur2 {
 input#duration2 {
   width: 18vh;
 }
+
+/* patient card dash */
+img.w-40.rounded-circle {
+  width: 7vh;
+}
+.contact-info {
+  margin-top: -5vh;
+  margin-left: 9vh;
+}
+.card1 {
+  margin-left: 58vh;
+  margin-top: -40vh;
+}
+.card2 {
+  margin-left: 20vh;
+  margin-top: -40vh;
+}
+
+.card3 {
+  margin-left: 19vh;
+  margin-top: -40vh;
+}
+.card1,.card2,.card3 {
+  width: 200px;
+  height: 100px;
+
+  padding: 20px;
+  text-align: center;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+}
+.contact-cont {
+  margin-top: 4vh;
+}
+
+.col-12.col-md-6.col-lg-4.col-xl-4 {
+  margin-top: -5vh;
+}
+
+

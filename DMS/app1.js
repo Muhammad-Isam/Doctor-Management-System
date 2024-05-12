@@ -1,5 +1,6 @@
 // add hovered class to selected list item
 let list = document.querySelectorAll(".navigation li");
+const currentPage = window.location.pathname.split("/").pop();
 
 function activeLink() {
   list.forEach((item) => {
@@ -23,20 +24,22 @@ toggle.onclick = function () {
 let medPlusBtn = document.getElementById("medPlus")
 let testPlusBtn = document.getElementById("testPlus")
 
-let medContainer = document.getElementById("medication-info")
-let testContainer = document.getElementById("test-info")
 
-// console.log(medContainer)
+let medContainerHTML = document.getElementById("medication-info")
+let testContainerHTML = document.getElementById("test-info")
 
 medPlusBtn && medPlusBtn.addEventListener('click',addMedField)
 testPlusBtn && testPlusBtn.addEventListener('click', addTestField)
 function addMedField()
 {
-  medContainer.innerHTML += `<br>`+medContainer.innerHTML;
+  let medContainer = document.getElementById("medication-info")
+
+  medContainer.innerHTML += `<br>`+ medContainerHTML.innerHTML;
 }
 
 function addTestField()
 {
-  testContainer.innerHTML += `<br>`+testContainer.innerHTML;
+  let testContainer = document.getElementById("test-info")
+  testContainer.innerHTML += `<br>`+testContainerHTML.innerHTML;
 }
 

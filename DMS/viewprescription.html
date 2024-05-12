@@ -6,10 +6,10 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard </title>
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@1.3.6/dist/full.css" rel="stylesheet">
-
     <!-- ======= Styles ====== -->
     <link rel="stylesheet" href="style.css">
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@1.3.6/dist/full.css" rel="stylesheet">
+
 </head>
 
 <body>
@@ -92,7 +92,6 @@
             </ul>
         </div>
 
-
         <!-- ========================= Main ==================== -->
         <div class="main">
             <div class="topbar">
@@ -100,13 +99,17 @@
                     <ion-icon name="menu-outline"></ion-icon>
                 </div>
 
-                <div class="search">
+                <div class="search" style="margin: 0 50vh;">
                     <label>
                         <input type="text" placeholder="Search here">
                         <ion-icon name="search-outline"></ion-icon>
                     </label>
                 </div>
 
+                <!-- <div class="user">
+                    <ion-icon size="small"></ion-icon>
+                    <ion-icon name="person-circle-outline"></ion-icon>
+                </div> -->
                 <div class="dropdown dropdown-end">
                     <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar">
                       <div class="w-10 rounded-full">
@@ -115,74 +118,70 @@
                     </div>
                     <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
                       
-                      <li><a>Logout</a></li>
+                      <li><a id="logOut">Logout</a></li>
                     </ul>
                   </div>
             </div>
+            <ion-icon name="receipt-outline" style="font-size: 2em; margin-bottom: -7vh; margin-left: 63vh; font-size: 2em;" id="lpg"></ion-icon>
 
+            <h2 id="pre" style="font-weight: bolder;">Prescription</h2>
             
-            <ion-icon name="business"style="font-size: 2em;"></ion-icon>
-            <h2 id="bill">LAB</h2>
-
-           <div class="dataEntry">
-            <label for="Dose">Appointment ID: </label>
-            <input type="text" id="appID" class="appID" placeholder="Appointment ID">
-            <label for="Dose">Test ID: </label>
-            <input type="text" id="testID" class="testID" placeholder="Test ID">
-            <button id="search" class="btn btn-small btn-outline" style="margin-left: 40vh;">Search</button>
-           </div>
-                <div class="invoice">
-                    <h1>RESULTS</h1>
-                    <div class="details">
-                        <div class="left">
-                            <strong><label for="pName">Patient Name:</label></strong><span id="pName">Alex</span><br>
-                            <strong><label for="pAge">AGE:</label></strong><span id="page">18</span><br>
-                            <strong><label for="date">Date:</label></strong><span id="date">05/05/2023</span><br>
-                            <strong><label for="dName">Doctor Name:</label></strong><span id="dName">Dr. Alex</span>
-
-                        </div>
-                        <div class="right">
-                            
-                        </div>
+           
+            <div class="prescription">
+                <div class="patient-info">
+                    <h1 id="ph1">Prescription</h1>
+            
+                    <label for="app-id" id="pid">Appointment ID:</label>
+                    <input type="text" id="app-id" placeholder="AppointmentID" readonly>
+                    <div>
+                        <label for="patient-id" id="pid">Patient Name:</label>
+                        <input type="text" id="patient-id" placeholder="Patient Name" readonly>
+                        <label for="patient-name" id="pname">Doctor Name:</label>
+                        <input type="text" id="doctor-name" placeholder="Doctor Name" readonly>
                     </div>
-                    <div class="tests">
-                        <!-- <div class="test">
-                            
-                            <span>Test:</span>
-                            <span><strong><input type="text" id="t" placeholder="Hemoglobin"></strong></span>
-                        </div> -->
-                        <div class="test">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Test ID</th>
-                                        <th>Test Name</th>
-                                        <th>Field Name</th>
-                                        <th>Field Result</th>
-                                        <th>Normal Range</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>1</td>
-                                        <td>cbc</td>
-                                        <td>2000 blood count</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        
-                            <!-- <span>Result:</span>
-                            <span><strong><input type="text" id="res" placeholder="2100 rbc"></strong></span> -->
-                        </div>
-
-                        
+                    <div>
+                        <label for="age">Age:</label>
+                        <input type="text" id="age" placeholder="Enter Age" readonly>
+                        <label for="clinical-notes">Clinical Notes:</label>
+                        <textarea class="textarea textarea-ghost" placeholder="Notes" id="cnotes" readonly></textarea>
                     </div>
-                    
-                    
+                    <div class="diag">
+                        <label for="diagnosis">Diagnosis:</label>
+                        <input type="text" id="diag" placeholder="Cancer" readonly>
+                        <label for="hos" id="hos">Description:</label>
+                        <textarea class="textarea textarea-ghost" placeholder="Description" id="description" readonly></textarea>
+                    </div>
                 </div>
-            </body>
+                <div class="medicationContainer" id="medication-info">
+                    <label for="medicine">Medicine:</label>
+                    <input type="text" class="medi" id="medi" placeholder="Panadol" readonly>
+                    <label for="Dose">Dose: </label>
+                    <input type="text" id="Dose2" class="Dose2" placeholder="250m/l" readonly>
+                    <label for="Dose">Quantity: </label>
+                    <input type="text" id="qty2" class="qty2" placeholder="1/2/3" readonly>
+                    <label for="Frequency">Frequency: </label>
+                    <input type="text" id="freq" class="freq" placeholder="Twice a day" readonly>
+                    <label for="Duration" id="dur2">Duration: </label>
+                    <input type="text" id="duration2" class="duration2" placeholder="in (days)" readonly>
+                    <br><label for="clinical-notes">Instructions:</label>
+                    <textarea class="textarea textarea-ghost ins" class="ins" id="ins" placeholder="Notes" readonly></textarea>
+                </div>
+                <!-- <div id="medi"><button id="medPlus" class="btn btn-small btn-outline" style="margin-right: 510px;">+</button></div> -->
+                
+                <div class="testContainer" id="test-info">
+                    <label for="test">Test:</label>
+                    <input type="text" id="tst" placeholder="None" class='tst' readonly>
+                </div>
+                <!-- <div><button id="testPlus" class="btn btn-small btn-outline" style="margin-right: 510px;">+</button></div>  -->
             
+                <!-- <div><button id="gen" class="btn btn-small btn-outline" style="margin-left: 40vh;">Generate</button></div> -->
+            </div>
+            
+            
+            
+        
+              
+              
     <!-- =========== Scripts =========  -->
     <script src="app.js"></script>
     <script src="app1.js"></script>
