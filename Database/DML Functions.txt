@@ -19,7 +19,7 @@ create function getDoctorAppointments
 returns table
 as
 return
-(select a.AppointmentID, a.PatientID, p.PatientName, substring(convert(VARCHAR(10), a.Date, 120),1,10) as 'Date', substring(convert(VARCHAR(9), a.Time, 108), 1, 9)
+(select a.AppointmentID, a.PatientID, p.PatientName, p.Email, substring(convert(VARCHAR(10), a.Date, 120),1,10) as 'Date', substring(convert(VARCHAR(9), a.Time, 108), 1, 9)
 as 'Time', a.Status 
 from Appointment a, Doctor d, Patient p
 where a.DoctorID=@DoctorID
@@ -69,15 +69,15 @@ RETURNS TABLE
 AS
 RETURN
 (
-    SELECT pa.PatientID, pa.PatientName, dg.DiagnosisID, dg.DiagnosisName, substring(convert(VARCHAR(10), p.Date, 120),1,10) as 'Date', pd.Description 
+    SELECT a.AppointmentID, pa.PatientID, pa.PatientName, dg.DiagnosisID, dg.DiagnosisName, substring(convert(VARCHAR(10), p.Date, 120),1,10) as 'Date', pd.Description 
     FROM PrescriptionDiagnosis pd
     INNER JOIN Prescription p ON pd.PrescriptionID = p.PrescriptionID
     INNER JOIN Diagnosis dg ON pd.DiagnosisID = dg.DiagnosisID
     INNER JOIN Appointment a ON p.AppointmentID = a.AppointmentID
     INNER JOIN Patient pa ON a.PatientID = pa.PatientID
+	INNER JOIN PrescriptionMedicine pm on pm.PrescriptionID=p.PrescriptionID
     WHERE a.DoctorID = @DoctorID
 );
-
 
 select * from getMyPatientDiagnoses(1)
 
@@ -86,13 +86,17 @@ RETURNS TABLE
 AS
 RETURN
 (
-    select A.AppointmentID, A.PatientID, P.PatientName, A.Date, A.Time, A.Status
-    from Appointment A INNER JOIN Doctor D 
+    select A.AppointmentID, A.PatientID, P.PatientName, P.Email, pd.PrescriptionID, A.Date, A.Time, A.Status
+    from PrescriptionDiagnosis pd, Appointment A INNER JOIN Doctor D 
 	on 
 	A.DoctorID = D.DoctorID
 	INNER JOIN Patient p on a.PatientID=p.Patientid
+	INNER JOIN Prescription ps on a.AppointmentID=ps.AppointmentID
+	INNER JOIN PrescriptionMedicine pm on pm.PrescriptionID=ps.PrescriptionID
     where A.DoctorID = @DoctorID
-    AND A.Date < CAST(GETDATE() AS DATE)
+	AND ps.PrescriptionID=pd.PrescriptionID
+    --AND A.Date < CAST(GETDATE() AS DATE)
+	AND a.Status<>'Pending'
 );
 
 select * from getPastAppointments(1)
@@ -123,7 +127,7 @@ pm.Quantity, pm.Dosage, pm.Instructions, pm.MedicineDuration,pr.ClinicalNotes,pr
 from
 Appointment a
 inner join Patient p
-on p.PatientID=a.AppointmentID
+on p.PatientID=a.PatientID
 inner join Prescription pr 
 on a.AppointmentID=pr.AppointmentID
 inner join PrescriptionDiagnosis pd
@@ -399,8 +403,8 @@ AS
 RETURN
 (
     SELECT a.PatientID, pat.PatientName, e.EmpName as 'DoctorName',datediff(year,pat.DOB,getDate()) as 'Age',
-	tso.OrderID, tlt.TestID, tlt.TestName, tlt.Cost, lr.SampleID, lr.FieldId, lr.FieldResult,
-	lr.TimeStamp AS 'Test Result Schedule', tso.collection_time
+	tso.OrderID, tlt.TestID, tlt.TestName, tlt.Cost, lr.SampleID, lr.FieldId, tf.FieldName, lr.FieldResult, tf.NormalRange,
+	lr.TimeStamp AS 'TestResultSchedule', tso.collection_time
     FROM Appointment a
     JOIN Prescription p ON a.AppointmentID = p.AppointmentID
     JOIN TestOrders tso ON p.PrescriptionID = tso.PrescriptionID
@@ -410,6 +414,7 @@ RETURN
 	JOIN TotalLabTest tlt ON pt.TestID = tlt.TestID
     JOIN LabResults lr ON tso.OrderID = lr.SampleID
     JOIN Samples s ON tso.OrderID = s.OrderID
+	JOIN TestFields tf on lr.FieldID=tf.FieldID
     WHERE a.AppointmentID=@AppointmentID
 	AND tlt.TestID=@TestID AND pt.TestID=@TestID)
 
