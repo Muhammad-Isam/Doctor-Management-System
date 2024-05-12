@@ -295,13 +295,16 @@ async function getPastAppointments() {
         if (!response.ok) {
             // throw new Error('Network response was not ok');
             var tbody = document.querySelector('table tbody');
-            tbody.innerHTML = '<td></td><td></td><td></td><td></td><td>NO APPOINTMENTS!</td><td></td>';
+            if (tbody) {
+                tbody.innerHTML = '<td></td><td></td><td></td><td></td><td>NO APPOINTMENTS!</td><td></td>';
+            }
         }
         const appointments = await response.json();
         return appointments;
     } catch (error) {
-        console.error('Error fetching appointments:', error);
-        throw error; // Rethrow the error to be caught by the caller
+        // console.error('Error fetching appointments:', error);
+        // throw error; // Rethrow the error to be caught by the caller
+        return null;
     }
 }
 
@@ -310,7 +313,7 @@ async function getMyPatientDiagnoses() {
         const response = await fetch(`http://localhost:3000/patient/diagnoses?doctorID=${doctor[0].DoctorID}`);
         if (!response.ok) {
             var tbody = document.querySelector('table tbody');
-            tbody.innerHTML = '<td></td><td></td><td></td><td></td><td>NO DIAGNOSES YET!</td><td></td><td></td><td></td>';
+            tbody.innerHTML = '<td></td><td></td><td></td><td></td><td>NO DIAGNOSES YET!</td>';
             // throw new Error('Network response was not ok');
         }
         const patientDiagnoses = await response.json();
@@ -338,78 +341,82 @@ async function getPatientWithMedicalHistory(patientID) {
 async function updatePastAppointmentsTable() {
     try {
         // Fetch past appointments asynchronously
-        const pastAppointments = await getPastAppointments();
+        let pastAppointments = await getPastAppointments();
+        if (pastAppointments) {
+            // Get the table body element
+            var tbody = document.querySelector('table tbody');
 
-        // Get the table body element
-        var tbody = document.querySelector('table tbody');
+            // Clear existing rows
+            tbody.innerHTML = '';
 
-        // Clear existing rows
-        tbody.innerHTML = '';
+            // Loop through past appointments and add rows to the table
+            pastAppointments.forEach(function (appointment) {
+                // Create a new table row
+                var row = document.createElement('tr');
 
-        // Loop through past appointments and add rows to the table
-        pastAppointments.forEach(function (appointment) {
-            // Create a new table row
-            var row = document.createElement('tr');
+                // Create table data cells for each appointment property
+                var idCell = document.createElement('td');
+                idCell.textContent = appointment.AppointmentID;
+                row.appendChild(idCell);
 
-            // Create table data cells for each appointment property
-            var idCell = document.createElement('td');
-            idCell.textContent = appointment.AppointmentID;
-            row.appendChild(idCell);
+                var nameCell = document.createElement('td');
+                nameCell.textContent = appointment.PatientName;
+                row.appendChild(nameCell);
 
-            var nameCell = document.createElement('td');
-            nameCell.textContent = appointment.PatientName;
-            row.appendChild(nameCell);
+                var dateCell = document.createElement('td');
+                dateCell.textContent = appointment.Date;
+                row.appendChild(dateCell);
 
-            var dateCell = document.createElement('td');
-            dateCell.textContent = appointment.Date;
-            row.appendChild(dateCell);
+                var timeCell = document.createElement('td');
+                timeCell.textContent = appointment.Time;
+                row.appendChild(timeCell);
 
-            var timeCell = document.createElement('td');
-            timeCell.textContent = appointment.Time;
-            row.appendChild(timeCell);
+                var statusCell = document.createElement('td');
+                statusCell.textContent = appointment.Status;
+                row.appendChild(statusCell);
 
-            var statusCell = document.createElement('td');
-            statusCell.textContent = appointment.Status;
-            row.appendChild(statusCell);
+                // Create a cell for the "Prescription" button
+                var prescriptionCell = document.createElement('td');
+                var prescriptionButton = document.createElement('button');
+                prescriptionButton.textContent = 'Prescription';
+                prescriptionButton.setAttribute('AppointmentID', appointment.AppointmentID)
+                prescriptionButton.setAttribute('PatientID', appointment.PatientID)
+                prescriptionButton.classList.add('btn', 'btn-active', 'btn-accent');
+                // Add event listener to prescription button
+                prescriptionButton.addEventListener('click', async function () {
+                    try {
+                        const appointmentID = this.getAttribute('AppointmentID');
+                        const PatientID = this.getAttribute('PatientID');
 
-            // Create a cell for the "Prescription" button
-            var prescriptionCell = document.createElement('td');
-            var prescriptionButton = document.createElement('button');
-            prescriptionButton.textContent = 'Prescription';
-            prescriptionButton.setAttribute('AppointmentID', appointment.AppointmentID)
-            prescriptionButton.setAttribute('PatientID', appointment.PatientID)
-            prescriptionButton.classList.add('btn', 'btn-active', 'btn-accent');
-            // Add event listener to prescription button
-            prescriptionButton.addEventListener('click', async function () {
-                try {
-                    const appointmentID = this.getAttribute('AppointmentID');
-                    const PatientID = this.getAttribute('PatientID');
+                        // Fetch patient details for prescription generation
+                        let patientDetails = await getPatientWithMedicalHistory(PatientID);
+                        // Store patient details in localStorage
+                        const patientData = {
+                            appointmentID: appointment.AppointmentID,
+                            patientDetails: patientDetails
+                        };
+                        console.log(patientData)
+                        // Store patient data in localStorage
+                        localStorage.setItem('patientData', JSON.stringify(patientData));
+                        // Redirect to prescription.html
+                        const prescriptionDetails = await getPrescriptionDetails(appointmentID);
+                        localStorage.setItem('prescriptionDetails', JSON.stringify(prescriptionDetails));
+                        window.location.pathname = "viewprescription.html";
 
-                    // Fetch patient details for prescription generation
-                    let patientDetails = await getPatientWithMedicalHistory(PatientID);
-                    // Store patient details in localStorage
-                    const patientData = {
-                        appointmentID: appointment.AppointmentID,
-                        patientDetails: patientDetails
-                    };
-                    console.log(patientData)
-                    // Store patient data in localStorage
-                    localStorage.setItem('patientData', JSON.stringify(patientData));
-                    // Redirect to prescription.html
-                    const prescriptionDetails = await getPrescriptionDetails(appointmentID);
-                    localStorage.setItem('prescriptionDetails', JSON.stringify(prescriptionDetails));
-                    window.location.pathname = "viewprescription.html";
+                    } catch (error) {
+                        console.error('Error fetching patient details for prescription:', error);
+                    }
+                });
+                prescriptionCell.appendChild(prescriptionButton);
+                row.appendChild(prescriptionCell);
 
-                } catch (error) {
-                    console.error('Error fetching patient details for prescription:', error);
-                }
+                // Append the row to the table body
+                tbody.appendChild(row);
             });
-            prescriptionCell.appendChild(prescriptionButton);
-            row.appendChild(prescriptionCell);
-
-            // Append the row to the table body
-            tbody.appendChild(row);
-        });
+        }
+        else {
+            pastAppointments = [];
+        }
     } catch (error) {
         console.error('Error updating past appointments table:', error);
     }
@@ -582,7 +589,7 @@ async function updateAppointmentsTable() {
             });
         }
         else {
-            appointments=[];
+            appointments = [];
         }
     } catch (error) {
         console.error('Error updating appointments table:', error);
@@ -841,6 +848,7 @@ function generatePrescription() {
     const diagnosisSelectedValue = diagnosisSelectElement.value;
     const appID = document.getElementById("app-id").value;
     const clinicalNotes = document.getElementById("cnotes").value;
+    console.log(clinicalNotes)
     const diagnosisID = diagnosisSelectedValue;
     const description = document.getElementById("description").value;
     createPrescription(appID, clinicalNotes, diagnosisID, description)
@@ -1026,12 +1034,19 @@ if (!doctor && currentPageName !== "login.html") {
                 const contactInfo1 = document.getElementsByClassName("contact-date");
                 const pic = document.getElementsByClassName("pic")
                 console.log(patInfo);
-                document.getElementById("pastAppointments").innerText = pastAppointments.length;
-                document.getElementById("currentAppointments").innerText = patInfo.length;
-                document.getElementById("totalCount").innerText = patInfo.length + pastAppointments.length;
                 console.log(pastAppointments);
                 console.log(contactInfo1);
-                if (pastAppointments && pastAppointments.length > 1) {
+                if (!pastAppointments) {
+                    pastAppointments = [];
+                    pastAppointments.length = 0;
+                    contactInfo[0].innerText = "";
+                    contactInfo1[0].innerText = "";
+                    contactInfo[1].innerText = "";
+                    contactInfo1[1].innerText = "";
+                    pic[0].src = "";
+                    pic[1].src = "";
+                }
+                else if (pastAppointments && pastAppointments.length > 1) {
                     contactInfo[0].innerText = pastAppointments[0].PatientName;
                     contactInfo1[0].innerText = " " + pastAppointments[0].Email;
                     contactInfo[1].innerText = pastAppointments[1].PatientName;
@@ -1042,17 +1057,10 @@ if (!doctor && currentPageName !== "login.html") {
                     contactInfo[1].innerText = "";
                     contactInfo1[1].innerText = "";
                     pic[1].src = "";
-                } else if (!pastAppointments) {
-                    pastAppointments = [];
-                    pastAppointments.length = 0;
-                    contactInfo[0].innerText = "";
-                    contactInfo1[0].innerText = "";
-                    contactInfo[1].innerText = "";
-                    contactInfo1[1].innerText = "";
-                    pic[0].src = "";
-                    pic[1].src = "";
-
                 }
+                document.getElementById("pastAppointments").innerText = pastAppointments.length;
+                document.getElementById("currentAppointments").innerText = patInfo.length;
+                document.getElementById("totalCount").innerText = patInfo.length + pastAppointments.length;
             } catch (error) {
                 console.error('Error handling appointments:', error);
             }
