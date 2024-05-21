@@ -82,7 +82,7 @@ async function displayDoctorProfile() {
             });
             document.getElementById("name").value = 'Dr. ' + doctor[0].DoctorName;
             document.getElementById("gender").value = doctor[0].Gender;
-            document.getElementById("dob").value = doctor[0].DoctorName;
+            document.getElementById("dob").value = doctor[0].DOB.toString().substring(0, 10);
             document.getElementById("email").value = doctor[0].Email;
             document.getElementById("specialisation").value = doctor[0].Specialization;
             document.getElementById("salary").value = doctor[0].Salary;
@@ -220,11 +220,11 @@ async function displayPrescriptionDetails() {
 
         function addTestField() {
             testContainer.innerHTML += `<br>` + `                    <label for="test">Test:</label>
-        <input type="text" id="tst" placeholder="CBC" readonly>`;
+        <input type="text" id="tst" placeholder="CBC" class="tst" readonly>`;
         }
 
         for (let i = 1; i < prescriptionDetails.length; i++) {
-            if ((prescriptionDetails[i].Testname != null) && (prescriptionDetails[i].Testname != prescriptionDetails[j].Testname) && (j < prescriptionDetails.length)) {
+            if ((prescriptionDetails[i].Testname != null)) {
                 // console.log(i)
                 addTestField();
             }
@@ -254,13 +254,12 @@ async function displayPrescriptionDetails() {
             qtyElements[i].value = prescriptionDetails[i].Quantity
             durElements[i].value = prescriptionDetails[i].MedicineDuration
             insElements[i].value = prescriptionDetails[i].Instructions
+
         }
-        for (let i = 0; i < testSelectElements.length; i++) {
-            if ((prescriptionDetails[i].Testname != null)) {
-                console.log(prescriptionDetails[i].Testname)
-                testSelectElements[i].value = prescriptionDetails[i].Testname
-            }
-            j++
+        for (let i = 0; i < prescriptionDetails.length; i++) {
+
+            console.log(prescriptionDetails[i].Testname)
+            testSelectElements[i].value = prescriptionDetails[i].Testname
         }
         localStorage.removeItem('prescriptionDetails');
     }
@@ -777,7 +776,7 @@ function updateDiagnosisOptions(diagnosis) {
 genBtn = document.getElementById("gen");
 
 
-function generatePrescription() {
+async function generatePrescription() {
     // Get all select elements with the class 'medicine'
     // Get all select elements with the class 'medicine'
     const selectElements = document.querySelectorAll('.medicine');
@@ -851,16 +850,23 @@ function generatePrescription() {
     console.log(clinicalNotes)
     const diagnosisID = diagnosisSelectedValue;
     const description = document.getElementById("description").value;
-    createPrescription(appID, clinicalNotes, diagnosisID, description)
+    await createPrescription(appID, clinicalNotes, diagnosisID, description)
 
     for (let i = 0; i < durSelectedValues.length; i++) {
-        addMedicinesToPrescription(selectedValues[i], freqSelectedValues[i], qtySelectedValues[i], doseSelectedValues[i],
-            insSelectedValues[i], durSelectedValues[i]);
+
+        if (durSelectedValues[i] <= 0 || freqSelectedValues[i] <= 0) {
+            alert("Invalid Values Found.");
+            return;
+        } else {
+            await addMedicinesToPrescription(selectedValues[i], freqSelectedValues[i], qtySelectedValues[i], doseSelectedValues[i],
+                insSelectedValues[i], durSelectedValues[i]);
+        }
     }
 
-    updateAppointmentStatus(appID, 'Confirmed')
+
+    await updateAppointmentStatus(appID, 'Confirmed')
     for (let i = 0; i < testSelectedValues.length; i++) {
-        addTestToPrescription(testSelectedValues[i])
+        await addTestToPrescription(testSelectedValues[i])
     }
     alert("Prescription Generated! Generating Bill!");
     const patientData = JSON.parse(localStorage.getItem('patientData'));
@@ -883,7 +889,7 @@ genBtn && genBtn.addEventListener('click', generatePrescription)
 
 async function addTestToPrescription(testID) {
     try {
-        const response = await fetch('/add-test-to-prescription', {
+        const response = await fetch('http://localhost:3000/add-test-to-prescription', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

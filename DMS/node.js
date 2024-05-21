@@ -552,7 +552,7 @@ function addMedicinesToPrescription(medicineID, frequency, quantity, dosage, ins
         request.input('MedicineID', sql.Int, medicineID);
         request.input('Frequency', sql.VarChar(50), frequency);
         request.input('Quantity', sql.Int, quantity);
-        request.input('Dosage', sql.VarChar(20), dosage);
+        request.input('Dosage', sql.VarChar(50), dosage);
         request.input('Instructions', sql.VarChar(sql.MAX), instructions);
         request.input('MedicineDuration', sql.Int, medicineDuration);
 

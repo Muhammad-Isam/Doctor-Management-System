@@ -950,7 +950,7 @@ img.w-40.rounded-circle {
 .card1,.card2,.card3 {
   width: 200px;
   height: 100px;
-
+  background-color: #3A799D;
   padding: 20px;
   text-align: center;
   border: 1px solid #ccc;
