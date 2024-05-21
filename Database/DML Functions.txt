@@ -240,7 +240,7 @@ create procedure AddMedicinesToPrescription
 @MedicineID int,
 @Frequency varchar(50),
 @Quantity int,
-@Dosage varchar(20),
+@Dosage varchar(50),
 @Instructions varchar(MAX),
 @MedicineDuration int
 as
@@ -250,8 +250,8 @@ declare @PrescriptionID int;
 select TOP 1 @PrescriptionID=PrescriptionID from Prescription
 order by PrescriptionID desc
 
-insert into PrescriptionMedicine(PrescriptionID, MedicineID, Frequency, Quantity, Instructions, MedicineDuration)
-values (@PrescriptionID, @MedicineID, @Frequency, @Quantity, @Instructions, @MedicineDuration)
+insert into PrescriptionMedicine(PrescriptionID, MedicineID, Frequency, Dosage, Quantity, Instructions, MedicineDuration)
+values (@PrescriptionID, @MedicineID, @Frequency, @Dosage, @Quantity, @Instructions, @MedicineDuration)
 
 end
 
